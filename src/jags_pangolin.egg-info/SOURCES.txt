@@ -1,0 +1,14 @@
+LICENSE
+pyproject.toml
+src/jags_pangolin/__init__.py
+src/jags_pangolin/api.py
+src/jags_pangolin/engine.py
+src/jags_pangolin.egg-info/PKG-INFO
+src/jags_pangolin.egg-info/SOURCES.txt
+src/jags_pangolin.egg-info/dependency_links.txt
+src/jags_pangolin.egg-info/requires.txt
+src/jags_pangolin.egg-info/top_level.txt
+src/jags_pangolin/Backend/Multi_funcs.py
+src/jags_pangolin/Backend/flow.py
+src/jags_pangolin/Backend/index.py
+src/jags_pangolin/Backend/scalar_ops.py

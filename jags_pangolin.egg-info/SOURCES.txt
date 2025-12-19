@@ -1,0 +1,7 @@
+LICENSE
+pyproject.toml
+jags_pangolin.egg-info/PKG-INFO
+jags_pangolin.egg-info/SOURCES.txt
+jags_pangolin.egg-info/dependency_links.txt
+jags_pangolin.egg-info/requires.txt
+jags_pangolin.egg-info/top_level.txt

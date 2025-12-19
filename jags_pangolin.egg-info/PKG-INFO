@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: jags_pangolin
+Version: 0.1.0
+Summary: Python interface for running JAGS models
+Author: Long Nguyen
+License-Expression: MIT
+Requires-Python: >=3.9
+License-File: LICENSE
+Requires-Dist: pangolin@ git+https://github.com/justindomke/pangolin.git@main
+Dynamic: license-file
