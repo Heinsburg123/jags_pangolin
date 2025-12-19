@@ -1,4 +1,5 @@
 LICENSE
+README.txt
 pyproject.toml
 src/jags_pangolin/__init__.py
 src/jags_pangolin/api.py

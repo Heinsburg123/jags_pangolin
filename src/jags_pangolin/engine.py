@@ -109,12 +109,12 @@ class Sample_prob:
                 subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode()
             else:  # Linux/macOS
                 cmd = ['jags', 'script.txt']
-                subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode()
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT, cwd = tmp).decode()
             return self.read_coda(sample_vars, coda_chain, coda_index)
 
     def read_coda(self, sample_vars, coda_chain, coda_index):
         result = {}
-
+        
         # Load MCMC samples
         with open(coda_chain, "r") as f:
             res_lines = [float(line.strip().split()[1]) for line in f]

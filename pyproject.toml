@@ -6,15 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "jags_pangolin"
 version = "0.1.0"
 description = "Python interface for running JAGS models"
+readme = "README.md"
 requires-python = ">=3.9"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
   { name = "Long Nguyen" }
 ]
-readme = "README.md"
+
 dependencies = [
-    "pangolin @ git+https://github.com/justindomke/pangolin.git@main"
+    "pangolin @ git+https://github.com/justindomke/pangolin.git@main",
+    "numpy"
 ]
+
+[project.urls]
+Homepage = "https://github.com/Heinsburg123/jags_pangolin"
+Repository = "https://github.com/Heinsburg123/jags_pangolin"
 
 [tool.setuptools.packages.find]
 where = ["src"]
