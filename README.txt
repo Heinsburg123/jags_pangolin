@@ -4,7 +4,7 @@ vmap, autoregressive, composite and indexing.
 
 ## Installation
 ```bash
-pip install jags_pangolin
+pip uninstall git+https://github.com/Heinsburg123/jags_pangolin.git
 ```
 
 IMPORTANT:
