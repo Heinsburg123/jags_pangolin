@@ -39,7 +39,7 @@ class Sample_prob:
 
     def sample(self, sample_vars:list[RV], kwargs=[], values = [], niter=1000):
         # for var in sample_vars:
-            # print(repr(var))
+        #     print(repr(var))
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             data_path = tmp / "data.R"
@@ -62,6 +62,11 @@ class Sample_prob:
                         f.write(Scalar_ops.__dict__["Constant_before"](node, res[node]))
                 for i in range(len(kwargs)):
                     f.write(Scalar_ops.__dict__["Constant_before"](f"v{kwargs[i]._n}", RV(Constant(values[i]))))
+                f.close()
+
+            with open(data_path, "r") as f:
+                data_code = f.read()
+                # print(data_code)
                 f.close()
             
             with open( model_path, "w") as f:

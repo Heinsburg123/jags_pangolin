@@ -9,11 +9,14 @@ class Scalar_ops:
             code += f"{n}<-structure(c("
             arr = np.array(node.op.value)
             flat = arr.flatten(order = 'F')
+            # flat = np.round(flat, decimals=8)
+            # print(flat)
             for i in range(len(flat)):
                 if(i == len(flat)-1):
                     code += f"{flat[i]}"
                 else:
                     code += f"{flat[i]},"
+                # print(flat[i])
             code += f"),.Dim=c("
             for i in range(node.ndim):
                 if(i == node.ndim-1):
@@ -95,7 +98,7 @@ class Scalar_ops:
         )
 
     def Binomial(n: str, parents):
-        return f"{n} ~ dbin({parents[0]}, {parents[1]})"
+        return f"{n} ~ dbin({parents[1]}, {parents[0]})"
 
     def Uniform(n: str, parents):
         return f"{n} ~ dunif({parents[0]}, {parents[1]})"
@@ -117,7 +120,7 @@ class Scalar_ops:
 
     def StudentT(n: str, parents):
         return (
-            f"{n} ~ dt({parents[0]}, 1/({parents[1]}*{parents[1]}), {parents[2]})"
+            f"{n} ~ dt({parents[1]}, 1/({parents[2]}*{parents[2]}), {parents[0]})"
         )
 
     def Abs(n: str, parents):
