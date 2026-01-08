@@ -37,7 +37,9 @@ class Sample_prob:
                 self.dfs(nodes[node])
             return self.visited 
 
-    def sample(self, sample_vars:list[RV], kwargs=[], values = [], ninter=1000):
+    def sample(self, sample_vars:list[RV], kwargs=[], values = [], niter=1000):
+        # for var in sample_vars:
+            # print(repr(var))
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
             data_path = tmp / "data.R"
@@ -71,7 +73,7 @@ class Sample_prob:
                     check[node] = True
                     parents = [f"v{res[node].parents[i]._n}" for i in range(len(res[node].parents))]
                     if(flow.__dict__.get(res[node].op.name) is not None):
-                        tmp_p = [res[node].parents[i] for i in range(len(res[node].parents))]
+                        tmp_p = [res[node].parents[i].shape for i in range(len(res[node].parents))]
                         code = flow.__dict__[res[node].op.name](node, res[node].op, parents,0, tmp_p)
                         f.write(code + "\n")
                     elif(index.__dict__.get(res[node].op.name) is not None):
@@ -83,10 +85,15 @@ class Sample_prob:
                         code = Scalar_ops.__dict__[res[node].op.name](node, parents)
                         f.write(code + "\n")
                     elif(Multi_funcs.__dict__.get(res[node].op.name) is not None):
-                        tmp_p = [res[node].parents[i] for i in range(len(res[node].parents))]
+                        tmp_p = [res[node].parents[i].shape for i in range(len(res[node].parents))]
                         code = Multi_funcs.__dict__[res[node].op.name](node, res[node].op, parents, tmp_p)
                         f.write(code + "\n")
                 f.write("}\n")                  
+                f.close()
+            
+            with open(model_path, "r") as f:
+                model_code = f.read()
+                # print(model_code)
                 f.close()
 
             with open(script_path, "w") as f:
@@ -98,10 +105,9 @@ class Sample_prob:
                 script += "update 1000\n"
                 for sample_var in sample_vars:
                     script += f"monitor {('v'+str(sample_var._n))}\n"
-                script += f"update {ninter}\n"
+                script += f"update {niter}\n"
                 script += f'coda *\n'
                 f.write(script)
-
             system = platform.system()
             if system == "Windows":
                 jags_path = "C:/Program Files/JAGS/JAGS-4.3.1/x64/bin/jags.bat"
@@ -157,7 +163,8 @@ class Sample_prob:
         for var in sample_vars:
             final.append(result[f"v{var._n}"])
         for i in range(len(final)):
-            final[i] = np.array(final[i])
+            final[i] = np.moveaxis(np.array(final[i]), -1, 0)
+        # print(final[0].shape)
         return final
 
 

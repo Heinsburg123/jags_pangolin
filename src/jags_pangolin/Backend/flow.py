@@ -2,30 +2,18 @@ from .scalar_ops import Scalar_ops
 from .Multi_funcs import Multi_funcs
 from pangolin.ir import RV
 class flow:
-    def VMap(n, op, parents, ite, res):
+    def VMap(n, op, parents, ite, shapes):
         in_axes = op.in_axes
         axis_size = op.axis_size
         op = op.base_op
-        # if(len(in_axes) != len(parents)):
-        #     raise ValueError("Length of in_axes must be equal to number of parents")
-        # for i in range(len(in_axes)):
-        #     if in_axes[i] is not None and axis_size is None:
-        #         axis_size = parents[i].shape[0]
-        #         break
-        # for i in range(len(in_axes)):
-        #     if(in_axes[i] is not None and parents[i].ndim == 0):
-        #         raise ValueError("Input should be a vector if in_axes is not None")
-        #     elif(in_axes[i] is not None and parents[i].shape[0] != axis_size):
-        #         raise ValueError("All inputs with in_axes must have the same leading dimension")
-        #     elif(in_axes[i] is None and parents[i].ndim != 0):
-        #         raise ValueError("All inputs without in_axes must have only 0 leading dimension")
         if(axis_size == None):
             for i in range(len(parents)):
                 if(in_axes[i] != None):
-                    axis_size = res[i].shape[ite]
+                    axis_size = shapes[i][ite]
         ans = f"for(i{ite} in 1:{axis_size})" + "{\n"
         code = ""
         pars = []
+        new_shapes = []
         for j in range(len(parents)):
             
             if(in_axes[j] is not None):
@@ -33,8 +21,10 @@ class flow:
                     tmp = f"{parents[j][:-1]},i{ite}]"
                 else:
                     tmp = f"{parents[j]}[i{ite}]"
+                new_shapes.append(shapes[j][2:])
             else:
                 tmp = parents[j]
+                new_shapes.append(shapes[j])
             pars.append(tmp)
         name = ""
         if(n[-1] == ']'):
@@ -44,52 +34,38 @@ class flow:
         if(op.name == "Constant"):
             code += Scalar_ops.__dict__["Constant_after"](name, op)
         elif (flow.__dict__.get(op.name) is not None):
-            code += flow.__dict__[op.name](name, op, pars, ite+1, res)
+            code += flow.__dict__[op.name](name, op, pars, ite+1, new_shapes)
         elif(Multi_funcs.__dict__.get(op.name) is not None):
-            ans += Multi_funcs.__dict__[op.name](name, op, pars, res)
+            ans += Multi_funcs.__dict__[op.name](name, op, pars, new_shapes)
         else:
             code += Scalar_ops.__dict__[op.name](name, pars)
         code += "\n"
         ans += "  " + code + "}\n"
         return ans
 
-    def Autoregressive(n, op, parents, ite, res):
+    def Autoregressive(n, op, parents, ite, shapes):
         length = op.length
         in_axes = op.in_axes
         where_self = op.where_self
         op = op.base_op
-        # if(len(in_axes) != len(parents)-1):
-        #     raise ValueError("Length of in_axes must be equal to number of parents")
-        # if(where_self < 0 or where_self >= len(parents)):
-        #     raise ValueError("The position of self should be in correct range")
-        # if(parents[where_self].ndim != 0):
-        #     raise ValueError("Only an initial constant for autoregressive parent")
-        # offset = 0
-        # for i in range(len(parents)):
-        #     if i == where_self:
-        #         offset+=1
-        #         continue
-        #     if(in_axes[i-offset] is not None and parents[i].ndim==0):
-        #         raise ValueError("Should have in_axes as None if parent is a single value constant")
-        #     elif(in_axes[i-offset] is None and parents[i].ndim != 0):
-        #         raise ValueError("Should have in_axes as 0 if parent is a constant vector")
-        #     elif(in_axes[i-offset] is not None and parents[i].shape[0] != length):
-        #         raise ValueError("Length of vector should match length of autoregressive")
-            
         pars = []
+        new_shapes = []
         offset = 0
         for j in range(len(parents)):
             if(j == where_self):
                 pars.append(parents[j])
                 offset+=1
+                new_shapes.append(shapes[j])
                 continue
             if(in_axes[j-offset] is not None):
                 if(parents[j][-1] == ']'):
                     tmp = f"{parents[j][:-1]}, 1]"
                 else:
                     tmp = f"{parents[j]}[1]"
+                new_shapes.append(shapes[j][2:])
             else:
                 tmp = parents[j]
+                new_shapes.append(shapes[j])
             pars.append(tmp)
         name = ""
         if(n[-1] == ']'):
@@ -100,9 +76,9 @@ class flow:
         if(op.name == "Constant"):
             ans += Scalar_ops.__dict__["Constant_after"](name, op)
         elif (flow.__dict__.get(op.name) is not None):
-            ans += flow.__dict__[op.name](name, op, pars, ite, res)
+            ans += flow.__dict__[op.name](name, op, pars, ite+1, new_shapes)
         elif(Multi_funcs.__dict__.get(op.name) is not None):
-            ans += Multi_funcs.__dict__[op.name](name, op, pars, res)
+            ans += Multi_funcs.__dict__[op.name](name, op, pars, new_shapes)
         else:
             ans += Scalar_ops.__dict__[op.name](name, pars)
         ans += "\n"
@@ -134,16 +110,16 @@ class flow:
         if(op.name == "Constant"):
             code += Scalar_ops.__dict__["Constant_after"](name, op)
         elif (flow.__dict__.get(op.name) is not None):
-            code += flow.__dict__[op.name](name, op, pars, ite, res)
+            code += flow.__dict__[op.name](name, op, pars, ite+1, new_shapes)
         elif(Multi_funcs.__dict__.get(op.name) is not None):
-            ans += Multi_funcs.__dict__[op.name](name, op, pars, res)
+            ans += Multi_funcs.__dict__[op.name](name, op, pars, new_shapes)
         else:
             code += Scalar_ops.__dict__[op.name](name, pars)
         code += "\n"
         ans += "  " + code + "}\n"
         return ans
 
-    def Composite(n, op, parents, ite, res):
+    def Composite(n, op, parents, ite, shapes):
         num = op.num_inputs
         ops = op.ops
         par_nums = op.par_nums
@@ -152,31 +128,37 @@ class flow:
         if(num != len(parents)):
             raise ValueError("The number of parents should match num_inputs")
         new_list = []
+        new_shapes = []
         ans = ""
         for i in range(len(par_nums)):
             pars=[]
+            shapes_tmp = []
             for j in range(len(par_nums[i])):
                 if(par_nums[i][j] < num):
+                    # print(len(par_nums[i]), len(shapes))
                     pars.append(parents[par_nums[i][j]])
+                    shapes_tmp.append(shapes[par_nums[i][j]])
                 else:
                     if(par_nums[i][j]-num >= len(new_list)):
                         raise ValueError("Can't take parent that hasn't been created")
                     pars.append(new_list[par_nums[i][j]-num])
+                    shapes_tmp.append(new_shapes[par_nums[i][j]-num])
+            idd = n.find("[")
+            if(idd == -1):
+                name = f"{n}_{ite}_{i+1}"
+            else:
+                name = n[:idd]+f"_{ite}_{i+1}"+n[idd:]
             if(i<len(par_nums)-1):
-                idd = n.find("[")
-                if(idd == -1):
-                    name = f"{n}_{i+1}"
-                else:
-                    name = n[:idd]+f"_{i+1}"+n[idd:]
                 if(ops[i].name == "Constant"):
                     code = Scalar_ops.__dict__["Constant_after"](name, ops[i]) 
                 elif(Scalar_ops.__dict__.get(ops[i].name) is not None):
                     code = Scalar_ops.__dict__[ops[i].name](name, pars) 
                 elif(Multi_funcs.__dict__.get(ops[i].name) is not None):
-                    code = Multi_funcs.__dict__[ops[i].name](name, ops[i], pars, res) 
+                    code = Multi_funcs.__dict__[ops[i].name](name, ops[i], pars, shapes_tmp) 
                 elif(flow.__dict__.get(ops[i].name) is not None):
-                    code = flow.__dict__[ops[i].name](name, ops[i], pars, ite, res)
+                    code = flow.__dict__[ops[i].name](name, ops[i], pars, ite+1, shapes_tmp)
                 new_list.append(name)
+                new_shapes.append(ops[i].get_shape(*[shapes_tmp[k] for k in range(len(shapes_tmp))]))
                 ans+=code + "\n"
             else:
                 name = n
@@ -185,10 +167,9 @@ class flow:
                 elif(Scalar_ops.__dict__.get(ops[i].name) is not None):
                     code = Scalar_ops.__dict__[ops[i].name](name, pars) 
                 elif(Multi_funcs.__dict__.get(ops[i].name) is not None):
-                    code = Multi_funcs.__dict__[ops[i].name](name, ops[i], pars, res) 
+                    code = Multi_funcs.__dict__[ops[i].name](name, ops[i], pars, shapes_tmp) 
                 elif(flow.__dict__.get(ops[i].name) is not None):
-                    code = flow.__dict__[ops[i].name](name, ops[i], pars, ite, res)
+                    code = flow.__dict__[ops[i].name](name, ops[i], pars, ite, shapes_tmp)
                 ans+=code + "\n"
-        
         return ans
                 

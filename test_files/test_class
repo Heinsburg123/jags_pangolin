@@ -1,0 +1,109 @@
+from pangolin.testing.inference import InferenceTests
+import pangolin.blackjax
+from jax import numpy as jnp
+from pangolin import ir
+from jags_pangolin.engine import Sample_prob
+
+
+class TestJags(InferenceTests):
+    _sample_flat = Sample_prob().sample
+    _cast = jnp.array
+    _ops_without_sampling_support = {
+        ir.Inv,
+        ir.Wishart,
+    }
+
+    def test_repeated_exp(self):
+        super().test_repeated_exp()
+    def test_repeated_exp_with_dummy(self):
+        super().test_repeated_exp_with_dummy()
+    def test_autoregressive_simple(self):
+        super().test_autoregressive_simple()
+    def test_autoregressive_nonrandom(self):
+        super().test_autoregressive_nonrandom()
+    def test_autoregressive_varying_increments(self):
+        super().test_autoregressive_varying_increments()
+    def test_autoregressive_matmul(self):
+        super().test_autoregressive_matmul()
+    def test_autoregressive_matmul_A_rv(self):
+        super().test_autoregressive_matmul_A_rv()
+    def test_double_autoregressive(self):
+        super().test_double_autoregressive()
+    def test_autoregressive(self):
+        super().test_autoregressive()
+    def test_autoregressive_mapped(self):
+        super().test_autoregressive_mapped()
+    def test_vmap_autoregressive_deterministic(self):
+        super().test_vmap_autoregressive_deterministic()
+    def test_vmap_autoregressive_deterministic_mapped(self):
+        super().test_vmap_autoregressive_deterministic_mapped()
+    def test_vmap_autoregressive_deterministic_mapped2(self):
+        super().test_vmap_autoregressive_deterministic_mapped2()
+    def test_autoregressive_vmap(self):
+        super().test_autoregressive_vmap()
+    def test_autoregressive_vmap_mapped(self):
+        super().test_autoregressive_vmap_mapped()
+    def test_add_normal(self):
+        super().test_add_normal()
+    def test_add(self):
+        super().test_add()
+    def test_add_mul(self):
+        super().test_add_mul()
+    def test_simple(self):
+        super().test_simple()
+    def test_conditioning(self):
+        super().test_conditioning()
+    def test_nonrandom(self):
+        super().test_nonrandom()
+    def test_nonrandom_conditioning(self):
+        super().test_nonrandom_conditioning()
+    def test_nonrandom_from_given(self):
+        super().test_nonrandom_from_given()
+    def test_given_in_output(self):
+        super().test_given_in_output()
+    def test_vmap_normal1(self):
+        super().test_vmap_normal1()
+    def test_vmap_normal2(self):
+        super().test_vmap_normal2()
+    def test_vmap_normal3(self):
+        super().test_vmap_normal3()
+    def test_vmap_normal4(self):
+        super().test_vmap_normal4()
+    def test_double_vmap(self):
+        super().test_double_vmap()
+    def test_double_vmap_observed(self):
+        super().test_double_vmap_observed()
+    def test_deterministic_op(self, pangolin_op, numpy_fun, ranges):
+        super().test_deterministic_op(pangolin_op, numpy_fun, ranges)
+
+rnd = TestJags()
+rnd.test_repeated_exp()
+rnd.test_repeated_exp_with_dummy()
+rnd.test_autoregressive_simple()
+rnd.test_autoregressive_nonrandom()
+rnd.test_autoregressive_varying_increments()
+rnd.test_autoregressive_matmul()
+rnd.test_autoregressive_matmul_A_rv()
+rnd.test_double_autoregressive()
+rnd.test_autoregressive()
+rnd.test_autoregressive_mapped()
+rnd.test_vmap_autoregressive_deterministic()
+rnd.test_vmap_autoregressive_deterministic_mapped()
+rnd.test_vmap_autoregressive_deterministic_mapped2()
+rnd.test_autoregressive_vmap()
+rnd.test_autoregressive_vmap_mapped()
+rnd.test_add_normal()
+rnd.test_add()
+rnd.test_add_mul()
+rnd.test_simple()
+rnd.test_conditioning()
+rnd.test_nonrandom()
+# rnd.test_nonrandom_conditioning()
+rnd.test_nonrandom_from_given()
+rnd.test_given_in_output()
+rnd.test_vmap_normal1()
+rnd.test_vmap_normal2()
+rnd.test_vmap_normal3()
+rnd.test_vmap_normal4()
+rnd.test_double_vmap()
+rnd.test_double_vmap_observed()

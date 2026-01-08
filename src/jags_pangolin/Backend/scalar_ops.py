@@ -24,22 +24,22 @@ class Scalar_ops:
     
     def Constant_after(n:str, op):
         lines = []
+        # print(n)
         def recurse(indices, subarr):
             # Check if the current subarr is a scalar
             if np.isscalar(subarr) or subarr.ndim == 0:
                 # Only add indices if name does not already have brackets
-                if n.endswith("]"):
-                    full_name = n
-                else:
-                    idx_str = ",".join(str(i+1) for i in indices)
+                idx_str = ",".join(str(i+1) for i in indices)
+                if(n[-1] != ']'):
                     full_name = f"{n}[{idx_str}]" if indices else n
+                else:
+                    full_name = f"{n[:-1]},{idx_str}]" if indices else n
                 lines.append(f"{full_name} <- {subarr}")
             else:
                 for i in range(subarr.shape[0]):
                     recurse(indices + [i], subarr[i])
 
         recurse([], np.array(op.value))
-        print("\n".join(lines))
         return "\n".join(lines)
 
     def Add(n: str, parents):

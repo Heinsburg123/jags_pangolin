@@ -2,8 +2,8 @@ import numpy as np
 from pangolin.ir import *
 
 class Multi_funcs:
-    def Matmul(n, op, parents, res):
-        shape = op.get_shape(res[0].shape, res[1].shape)
+    def Matmul(n, op, parents, shapes):
+        shape = op.get_shape(shapes[0], shapes[1])
         idd = n.find('[')
         idd2 = parents[0].find('[')
         idd3 = parents[1].find('[')
@@ -16,40 +16,40 @@ class Multi_funcs:
             name = n
 
         if(idd2 != -1):
-            if(len(res[0].shape)==1):
-                name2 = parents[0][:-1]+f",1:{res[0].shape[0]}]"
+            if(len(shapes[0])==1):
+                name2 = parents[0][:-1]+f",1:{shapes[0][0]}]"
             else:
-                name2 = parents[0][:-1]+f",1:{res[0].shape[0]}, 1:{res[0].shape[1]}]"
+                name2 = parents[0][:-1]+f",1:{shapes[0][0]}, 1:{shapes[0][1]}]"
         else:
             name2 = parents[0]
 
         if(idd3 != -1):
             if(len(shape)==1):
-                name3 = parents[1][:-1]+f",1:{res[1].shape[0]}]"
+                name3 = parents[1][:-1]+f",1:{shapes[1][0]}]"
             else:
-                name3 = parents[1][:-1]+f",1:{res[1].shape[0]}, 1:{res[1].shape[1]}]"
+                name3 = parents[1][:-1]+f",1:{shapes[1][0]}, 1:{shapes[1][1]}]"
         else:
             name3 = parents[1]
 
         return f"{name} <- {name2} %*% {name3}\n"
 
-    def Sum(n, op, parents, res):
+    def Sum(n, op, parents, shapes):
         code = ""
         offset = 0
-        for i in range(res[0].ndim):
+        for i in range(len(shapes[0])):
             if(i!=op.axis):
-                code += f"for (j{i-offset} in 1:{res[0].shape[i]})"+"{\n"
+                code += f"for (j{i-offset} in 1:{shapes[0][i]})"+"{\n"
             else:
                 offset+=1
         code+=n
-        for i in range(res[0].ndim-1):
+        for i in range(len(shapes[0])):
             if(code[-1]==']'):
                 code = code[:-1]+f",j{i}]"
             else:
                 code = code + f"[j{i}]"
         code+= f"<- sum({parents[0]}"
         offset = 0
-        for i in range(res[0].ndim):
+        for i in range(len(shapes[0])):
             if(code[-1]==']'):
                 if(i == op.axis):
                     code = code[:-1]+",]"
@@ -65,11 +65,11 @@ class Multi_funcs:
         if(code[-1]!=']'):
             code+="[]"
         code+=")\n"
-        for i in range(res[0].ndim-1):
+        for i in range(len(shapes[0])-1):
             code +="}"
         return code
-    def Softmax(n, op, parents, res):
-        k = res[0].shape[0]
+    def Softmax(n, op, parents, shapes):
+        k = shapes[0][0]
         idd = n.find('[')
         if(idd == -1):
             name1 = f"{n}_1"+n[idd:]+"[j]"
@@ -94,8 +94,8 @@ class Multi_funcs:
         code += f"  {name3} <- {name1}/{name2}\n" + "}\n"
         return code
     
-    def MultiNormal(n, op, parents, res):
-        p = res[0].shape[0]
+    def MultiNormal(n, op, parents, shapes):
+        p = shapes[0][0]
         idd1 = n.find('[')
         idd2 = parents[0].find('[')
         idd3 = parents[1].find('[')
@@ -113,8 +113,8 @@ class Multi_funcs:
             name3 = parents[1][:-1]+f",1:{p},1:{p}]"
         return f"{name1} ~ dmnorm({name2}, inverse({name3}))"
     
-    def Multinomial(n, op, parents, res):
-        p = res[1].shape[0]
+    def Multinomial(n, op, parents, shapes):
+        p = shapes[1][0]
         idd1 = n.find('[')
         idd3 = parents[1].find('[')
         if(idd1==-1):
@@ -127,8 +127,8 @@ class Multi_funcs:
             name3 = parents[1][:-1]+f",1:{p}]"
         return f"{name1} ~ dmulti({name3}, {parents[0]})"
 
-    def Dirichlet(n, op, parents, res):
-        p = res[0].shape[0]
+    def Dirichlet(n, op, parents, shapes):
+        p = shapes[0][0]
         idd1 = n.find('[')
         idd2 = parents[0].find('[')
         if(idd1==-1):

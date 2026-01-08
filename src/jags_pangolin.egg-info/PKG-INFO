@@ -3,9 +3,12 @@ Name: jags_pangolin
 Version: 0.1.0
 Summary: Python interface for running JAGS models
 Author: Long Nguyen
-License-Expression: MIT
+License: MIT
+Project-URL: Homepage, https://github.com/Heinsburg123/jags_pangolin
+Project-URL: Repository, https://github.com/Heinsburg123/jags_pangolin
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: pangolin@ git+https://github.com/justindomke/pangolin.git@main
+Requires-Dist: numpy
 Dynamic: license-file
