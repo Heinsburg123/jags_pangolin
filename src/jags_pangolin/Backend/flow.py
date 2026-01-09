@@ -21,7 +21,7 @@ class flow:
                     tmp = f"{parents[j][:-1]},i{ite}]"
                 else:
                     tmp = f"{parents[j]}[i{ite}]"
-                new_shapes.append(shapes[j][2:])
+                new_shapes.append(shapes[j][1:])
             else:
                 tmp = parents[j]
                 new_shapes.append(shapes[j])
@@ -62,7 +62,7 @@ class flow:
                     tmp = f"{parents[j][:-1]}, 1]"
                 else:
                     tmp = f"{parents[j]}[1]"
-                new_shapes.append(shapes[j][2:])
+                new_shapes.append(shapes[j][1:])
             else:
                 tmp = parents[j]
                 new_shapes.append(shapes[j])

@@ -113,6 +113,7 @@ class Sample_prob:
                 script += f"update {niter}\n"
                 script += f'coda *\n'
                 f.write(script)
+                print(script)
             system = platform.system()
             if system == "Windows":
                 jags_path = "C:/Program Files/JAGS/JAGS-4.3.1/x64/bin/jags.bat"
