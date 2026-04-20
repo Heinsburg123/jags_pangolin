@@ -1,2 +1,2 @@
-pangolin@ git+https://github.com/justindomke/pangolin.git@main
+pangolin @ git+https://github.com/justindomke/pangolin.git@main
 numpy

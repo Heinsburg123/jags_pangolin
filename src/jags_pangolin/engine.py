@@ -93,7 +93,7 @@ class Sample_prob:
                         tmp_p = [res[node].parents[i].shape for i in range(len(res[node].parents))]
                         code = Multi_funcs.__dict__[res[node].op.name](node, res[node].op, parents, tmp_p)
                         f.write(code + "\n")
-                f.write("}\n")                  
+                f.write("}\n") 
                 f.close()
             
             with open(model_path, "r") as f:
@@ -113,10 +113,10 @@ class Sample_prob:
                 script += f"update {niter}\n"
                 script += f'coda *\n'
                 f.write(script)
-                print(script)
+                # print(script)
             system = platform.system()
             if system == "Windows":
-                jags_path = "C:/Program Files/JAGS/JAGS-4.3.1/x64/bin/jags.bat"
+                jags_path = "C:/Program Files/JAGS/JAGS-4.3.2/x64/bin/jags.bat"
                 cmd = f'cd /d "{tmp}" && "{jags_path}" script.txt'
                 subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode()
             else:  # Linux/macOS
