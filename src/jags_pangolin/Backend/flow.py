@@ -4,44 +4,20 @@ from pangolin.ir import RV
 
 class flow:
     def _resolve_parent(parent):
-        """
-        Convert a structured parent to a final JAGS index string.
-
-        During nested VMap calls, parents are carried as tuples
-        (base_name, index_list, original_shape) so each level can fill in
-        its own loop variable at the correct dimension without corrupting
-        dimensions that will be filled by inner loops.
-
-        index_list[d] is either a loop-variable string (e.g. "i0") if that
-        original dimension has already been mapped, or None if it is still
-        pending (filled here as "1:<size>" for leaf use).
-        """
         if isinstance(parent, tuple):
             base, idx_list, orig_shape = parent
             parts = [
                 idx if idx is not None else f"1:{orig_shape[d]}"
                 for d, idx in enumerate(idx_list)
             ]
-            # FIX: if `base` already carries indices (e.g. "v23[i0-1]" from a
-            # Scan self-reference), merge new parts inside the existing brackets
-            # instead of appending a second "[…]" pair.
+
             if base.endswith(']'):
                 return f"{base[:-1]}, {', '.join(parts)}]"
             return f"{base}[{', '.join(parts)}]"
-        return parent  # already a plain JAGS string
+        return parent  
 
     def _add_index_to_parent(parent, idx):
-        """
-        Fill the first still-pending (None) slot of a structured parent tuple
-        with `idx`, or append `idx` to a plain JAGS string.
 
-        Used by Scan to stamp in the time-step index (either the literal "1"
-        for the seed step, or a loop variable like "i2" for the body) without
-        touching slots that outer / inner VMap loops own.
-
-        Returns the same form as the input: a tuple if `parent` was a tuple,
-        otherwise a plain string.
-        """
         if isinstance(parent, tuple):
             base, idx_list, orig_shape = parent
             new_idx = list(idx_list)
@@ -51,7 +27,6 @@ class flow:
                     break
             return (base, new_idx, orig_shape)
         else:
-            # Plain JAGS string: append one more index level
             if parent.endswith(']'):
                 return f"{parent[:-1]}, {idx}]"
             else:
@@ -61,8 +36,6 @@ class flow:
         in_axes = op.in_axes
         axis_size = op.axis_size
         op = op.base_op
-
-        # axis_size: use the size of the actual mapped axis, not ite
         if axis_size is None:
             for i in range(len(parents)):
                 if in_axes[i] is not None:
@@ -70,8 +43,6 @@ class flow:
 
         ans = f"for(i{ite} in 1:{axis_size})" + "{\n"
         code = ""
-        # pars     – structured tuples passed to nested flow/VMap calls
-        # pars_str – fully-resolved JAGS strings for Scalar_ops / Multi_funcs
         pars = []
         pars_str = []
         new_shapes = []
@@ -79,44 +50,33 @@ class flow:
         for j in range(len(parents)):
             if in_axes[j] is not None:
                 axis = in_axes[j]
-
-                # Unpack the structured form, or create it fresh for a plain string
                 if isinstance(parents[j], tuple):
                     base, idx_list, orig_shape = parents[j]
                 else:
                     base = parents[j]
-                    orig_shape = shapes[j]          # full shape on first entry
+                    orig_shape = shapes[j]         
                     idx_list = [None] * len(orig_shape)
 
-                # Remaining axis k  →  k-th None slot in idx_list
-                # (slots already filled by outer VMaps are skipped)
                 none_positions = [i for i, v in enumerate(idx_list) if v is None]
                 orig_dim = none_positions[axis]
 
                 new_idx = list(idx_list)
                 new_idx[orig_dim] = f"i{ite}"
 
-                # Structured form for nested VMap: still has None for unmapped dims
                 pars.append((base, new_idx, orig_shape))
 
-                # Resolved JAGS string for leaf ops: fill remaining Nones with 1:d
                 parts = [
                     new_idx[d] if new_idx[d] is not None else f"1:{orig_shape[d]}"
                     for d in range(len(orig_shape))
                 ]
-                # FIX: a plain-string parent (e.g. a Scan self-reference like
-                # "v23[i0-1]") may already contain indices.  Appending "[i1]"
-                # would yield "v23[i0-1][i1]"; merge inside the existing
-                # brackets instead to get "v23[i0-1, i1]".
+
                 if base.endswith(']'):
                     pars_str.append(f"{base[:-1]}, {', '.join(parts)}]")
                 else:
                     pars_str.append(f"{base}[{', '.join(parts)}]")
 
-                # Drop the mapped axis from the remaining shape
                 new_shapes.append(shapes[j][:axis] + shapes[j][axis + 1:])
             else:
-                # No mapping at this level: pass the parent through unchanged
                 pars.append(parents[j])
                 pars_str.append(flow._resolve_parent(parents[j]))
                 new_shapes.append(shapes[j])
@@ -130,15 +90,11 @@ class flow:
         if op.name == "Constant":
             code += Scalar_ops.__dict__["Constant_after"](name, op)
         elif flow.__dict__.get(op.name) is not None:
-            # Nested flow op: pass structured pars so inner levels can extend them
             code += flow.__dict__[op.name](name, op, pars, ite + 1, new_shapes)
         elif Multi_funcs.__dict__.get(op.name) is not None:
-            # Leaf multi-op: needs resolved JAGS strings
-            # FIX: was `ans +=`, which placed the result outside the indented
-            # loop body; use `code` so it gets the "  " prefix below.
+
             code += Multi_funcs.__dict__[op.name](name, op, pars_str, new_shapes)
         else:
-            # Leaf scalar op: needs resolved JAGS strings
             code += Scalar_ops.__dict__[op.name](name, pars_str)
         code += "\n"
         ans += "  " + code + "}\n"
@@ -150,15 +106,11 @@ class flow:
         where_self = op.where_self
         op = op.base_op
 
-        # ── Seed step (time index = 1) ────────────────────────────────────────
-        # pars     : structured (tuple-or-string) parents for nested flow ops
-        # pars_str : fully-resolved JAGS strings for leaf ops
         pars = []
         new_shapes = []
         offset = 0
         for j in range(len(parents)):
             if j == where_self:
-                # Carry / self-reference slot: pass through untouched for now
                 pars.append(parents[j])
                 offset += 1
                 new_shapes.append(shapes[j])
