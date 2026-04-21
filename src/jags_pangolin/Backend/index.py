@@ -33,7 +33,7 @@ class index:
                         tmp += "+ 1"
                     self.loop(name, cur + [tmp], arr_name, id_names, index + [i+1], num, each)                
     
-    def SimpleIndex(self, n, parents, cur):
+    def Index(self, n, parents, cur):
         ans = ""
         if(cur[0].ndim == 0):
             ans = f"{n} <- {parents[0]}[{parents[1]}]"
