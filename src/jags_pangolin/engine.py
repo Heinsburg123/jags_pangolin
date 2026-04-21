@@ -86,7 +86,7 @@ class Sample_prob:
                     elif(index.__dict__.get(res[node].op.name) is not None):
                         tmp_p = index()
                         tmpp = [res[node].parents[i] for i in range(len(res[node].parents))]
-                        code = tmp_p.SimpleIndex(node, parents, tmpp)
+                        code = tmp_p.Index(node, parents, tmpp)
                         f.write(code + "\n")
                     elif(res[node].op.name!="Constant" and Scalar_ops.__dict__.get(res[node].op.name) is not None):
                         code = Scalar_ops.__dict__[res[node].op.name](node, parents)
