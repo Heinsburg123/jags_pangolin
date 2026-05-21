@@ -11,12 +11,30 @@ from pathlib import Path
 
 
 def ensure_size(arr, sizes, depth=0):
+def ensure_size(arr, sizes, depth=0):
     while len(arr) < sizes[depth]:
         if depth == len(sizes) - 1:
+            arr.append(None)
             arr.append(None)
         else:
             arr.append([])
     return arr
+
+
+def write_constant(f, name, val):
+    """Write a constant to a JAGS data.R file with full float64 precision (:.17g)."""
+    arr = np.array(val, dtype=np.float64)
+    if arr.ndim == 0:
+        f.write(f"{name} <- {float(arr):.17g}\n")
+    elif arr.ndim == 1:
+        vals_str = ", ".join(f"{v:.17g}" for v in arr)
+        f.write(f"{name} <- c({vals_str})\n")
+    else:
+        # JAGS is column-major, so flatten with order='F'
+        flat = arr.flatten(order='F')
+        vals_str = ", ".join(f"{v:.17g}" for v in flat)
+        dims = ", ".join(str(d) for d in arr.shape)
+        f.write(f"{name} <- structure(c({vals_str}), .Dim = c({dims}))\n")
 
 
 class Sample_prob:
@@ -24,7 +42,9 @@ class Sample_prob:
         def __init__(self):
             self.visited = {}
 
+
         def dfs(self, node):
+            name = "v" + str(node._n)
             name = "v" + str(node._n)
             if name in self.visited:
                 return
@@ -35,6 +55,7 @@ class Sample_prob:
         def run_dfs(self, nodes):
             for node in nodes:
                 self.dfs(nodes[node])
+            return self.visited
             return self.visited
 
     def sample(self, sample_vars: list[RV], kwargs=[], values=[], niter=1000, debug=False):

@@ -1,21 +1,18 @@
 class index:
-    code = []
+    def __init__(self):
+        self.code = []
     def loop(self, name, cur, arr_name, id_names, index, num, each):
         if(len(cur) == num):
             tmp = name
-            flag = 0
-            for x in each:
-                if(x.ndim!=0):
-                    flag = 1
-            if(flag == 1):
-                for i in range(num):
-                    if(tmp[-1]==']'):
-                        tmp = tmp[:-1]+f",{index[i]}]"
+            for i in range(num):
+                if each[i].ndim != 0:
+                    if tmp[-1] == ']':
+                        tmp = tmp[:-1] + f",{index[i]}]"
                     else:
                         tmp = tmp + f"[{index[i]}]"
             tmp += f"<-{arr_name}"
             for i in range(num):
-                if(tmp[-1] == ']'):
+                if tmp[-1] == ']':
                     tmp = tmp[:-1] + f",{cur[i]}]"
                 else:
                     tmp = tmp + f"[{cur[i]}]"
@@ -33,15 +30,8 @@ class index:
                         tmp += "+ 1"
                     self.loop(name, cur + [tmp], arr_name, id_names, index + [i+1], num, each)                
     
-    def SimpleIndex(self, n, parents, cur):
-        ans = ""
-        if(cur[0].ndim == 0):
-            ans = f"{n} <- {parents[0]}[{parents[1]}]"
-        elif cur[0].ndim == 1:
-            for i in range(len(cur[1].shape[0])):
-                ans += f"{n}[{i+1}] <- {parents[0]}[{parents[1]}[{i+1}]]"
-        else:
-            self.loop(n, [], parents[0], parents[1:], [], cur[0].ndim, cur[1:])
-            ans = "\n".join(self.code)
+    def Index(self, n, parents, cur):
         self.code = []
+        self.loop(n, [], parents[0], parents[1:], [], cur[0].ndim, cur[1:])
+        ans = "\n".join(self.code)
         return ans
