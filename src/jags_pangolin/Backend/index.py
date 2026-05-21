@@ -4,19 +4,15 @@ class index:
     def loop(self, name, cur, arr_name, id_names, index, num, each):
         if(len(cur) == num):
             tmp = name
-            flag = 0
-            for x in each:
-                if(x.ndim!=0):
-                    flag = 1
-            if(flag == 1):
-                for i in range(num):
-                    if(tmp[-1]==']'):
-                        tmp = tmp[:-1]+f",{index[i]}]"
+            for i in range(num):
+                if each[i].ndim != 0:
+                    if tmp[-1] == ']':
+                        tmp = tmp[:-1] + f",{index[i]}]"
                     else:
                         tmp = tmp + f"[{index[i]}]"
             tmp += f"<-{arr_name}"
             for i in range(num):
-                if(tmp[-1] == ']'):
+                if tmp[-1] == ']':
                     tmp = tmp[:-1] + f",{cur[i]}]"
                 else:
                     tmp = tmp + f"[{cur[i]}]"
