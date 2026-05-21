@@ -37,7 +37,7 @@ class Sample_prob:
                 self.dfs(nodes[node])
             return self.visited 
 
-    def sample(self, sample_vars:list[RV], kwargs=[], values = [], niter=1000):
+    def sample(self, sample_vars:list[RV], kwargs=[], values = [], niter=1000, debug = False):
         # for var in sample_vars:
         #     print(repr(var))
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -67,6 +67,8 @@ class Sample_prob:
             with open(data_path, "r") as f:
                 data_code = f.read()
                 # print(data_code)
+                if(debug):
+                    print(data_code)
                 f.close()
             
             with open( model_path, "w") as f:
@@ -84,7 +86,7 @@ class Sample_prob:
                     elif(index.__dict__.get(res[node].op.name) is not None):
                         tmp_p = index()
                         tmpp = [res[node].parents[i] for i in range(len(res[node].parents))]
-                        code = tmp_p.SimpleIndex(node, parents, tmpp)
+                        code = tmp_p.Index(node, parents, tmpp)
                         f.write(code + "\n")
                     elif(res[node].op.name!="Constant" and Scalar_ops.__dict__.get(res[node].op.name) is not None):
                         code = Scalar_ops.__dict__[res[node].op.name](node, parents)
@@ -93,12 +95,14 @@ class Sample_prob:
                         tmp_p = [res[node].parents[i].shape for i in range(len(res[node].parents))]
                         code = Multi_funcs.__dict__[res[node].op.name](node, res[node].op, parents, tmp_p)
                         f.write(code + "\n")
-                f.write("}\n")                  
+                f.write("}\n") 
                 f.close()
             
             with open(model_path, "r") as f:
                 model_code = f.read()
                 # print(model_code)
+                if(debug):
+                    print(model_code)
                 f.close()
 
             with open(script_path, "w") as f:
@@ -113,10 +117,11 @@ class Sample_prob:
                 script += f"update {niter}\n"
                 script += f'coda *\n'
                 f.write(script)
-                print(script)
+                if(debug):
+                    print(script)
             system = platform.system()
             if system == "Windows":
-                jags_path = "C:/Program Files/JAGS/JAGS-4.3.1/x64/bin/jags.bat"
+                jags_path = "C:/Program Files/JAGS/JAGS-4.3.2/x64/bin/jags.bat"
                 cmd = f'cd /d "{tmp}" && "{jags_path}" script.txt'
                 subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode()
             else:  # Linux/macOS

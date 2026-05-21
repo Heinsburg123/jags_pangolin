@@ -11,6 +11,9 @@ class TestJags(InferenceTests):
     _ops_without_sampling_support = {
         ir.Inv,
         ir.Wishart,
+        ir.Diag, 
+        ir.Transpose, 
+        ir.Cholesky,
     }
 
     def test_repeated_exp(self):

@@ -1,5 +1,6 @@
 class index:
-    code = []
+    def __init__(self):
+        self.code = []
     def loop(self, name, cur, arr_name, id_names, index, num, each):
         if(len(cur) == num):
             tmp = name
@@ -33,15 +34,8 @@ class index:
                         tmp += "+ 1"
                     self.loop(name, cur + [tmp], arr_name, id_names, index + [i+1], num, each)                
     
-    def SimpleIndex(self, n, parents, cur):
-        ans = ""
-        if(cur[0].ndim == 0):
-            ans = f"{n} <- {parents[0]}[{parents[1]}]"
-        elif cur[0].ndim == 1:
-            for i in range(len(cur[1].shape[0])):
-                ans += f"{n}[{i+1}] <- {parents[0]}[{parents[1]}[{i+1}]]"
-        else:
-            self.loop(n, [], parents[0], parents[1:], [], cur[0].ndim, cur[1:])
-            ans = "\n".join(self.code)
+    def Index(self, n, parents, cur):
         self.code = []
+        self.loop(n, [], parents[0], parents[1:], [], cur[0].ndim, cur[1:])
+        ans = "\n".join(self.code)
         return ans
