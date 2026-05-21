@@ -170,11 +170,8 @@ class Sample_prob:
                 if debug:
                     print("=== script ===")
                     print(script)
-
-            jags_path = "C:/Program Files/JAGS/JAGS-4.3.2/x64/bin/jags.bat"
-            cmd = f'cd /d "{tmp}" && "{jags_path}" script.txt'
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True).decode()
-
+                    
+            subprocess.check_output('jags script.txt', stderr=subprocess.STDOUT, cwd=tmp, shell=True).decode()
             return self._read_coda(sample_vars, coda_chain, coda_index)
 
     def _read_coda(self, sample_vars, coda_chain, coda_index):
