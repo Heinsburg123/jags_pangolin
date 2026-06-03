@@ -20,14 +20,16 @@ class index:
         else:
             if(each[len(cur)].ndim == 0):
                 tmp = id_names[len(cur)]
-                if(each[len(cur)].op.name == "Constant"):
-                    tmp += "+ 1"
+                # Always add +1: pangolin uses 0-based indices, JAGS uses 1-based.
+                # The previous code only added +1 for Constant nodes, causing
+                # derived index RVs (e.g. values fetched from another array) to
+                # be passed as-is (0-based) and produce out-of-bounds JAGS errors.
+                tmp += "+ 1"
                 self.loop(name, cur + [tmp], arr_name, id_names, index + [1], num, each)        
             else:
                 for i in range(each[len(cur)].shape[0]):
                     tmp = f"{id_names[len(cur)]}[{i+1}]"
-                    if(each[len(cur)].op.name == "Constant"):
-                        tmp += "+ 1"
+                    tmp += "+ 1"  # same fix for vector index elements
                     self.loop(name, cur + [tmp], arr_name, id_names, index + [i+1], num, each)                
     
     def Index(self, n, parents, cur):
